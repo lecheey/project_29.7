@@ -6,19 +6,13 @@
 void FineGrainedQueue::insertIntoMiddle(int value, int pos){
 	Node* newNode = new Node(value);
 	
-	queue_mutex.lock();
+	queue_mutex.lock(); // теперь наш head нельзя будет поменять
 	Node* current = head;
-
-	// если head пустой или добавляем в начало, то не лочим
-	if(current && pos != 0){
-		current->node_mutex.lock();
-	}
-
-	queue_mutex.unlock();
 
 	// пустой список - новый узел в начало
 	if(head == nullptr){
 		head = newNode;
+		queue_mutex.unlock();
 		return;
 	}
 	
@@ -26,8 +20,13 @@ void FineGrainedQueue::insertIntoMiddle(int value, int pos){
 	if(pos == 0){
 		newNode->next = head;
 		head = newNode;
+		queue_mutex.unlock();
 		return;
 	}
+	
+	// лочим, когда head точно не пустой и не добаляем в начало
+	current->node_mutex.lock();	
+	queue_mutex.unlock();
 
 	// в цикле идем по списку, пока список не кончится, или пока не дойдем до позиции
 	int i = 0;
